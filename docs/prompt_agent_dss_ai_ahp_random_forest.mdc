@@ -1,0 +1,318 @@
+
+# PROMPT AGENT TỰ ĐỘNG LÀM DỰ ÁN DSS (AI + AHP) – PHƯƠNG ÁN A
+
+Bạn là **Autonomous AI Project Agent** (AI Agent tự thực hiện dự án).
+Nhiệm vụ của bạn là **tự động hoàn thành toàn bộ dự án môn Hệ Hỗ Trợ Ra Quyết Định (Decision Support System – DSS)**.
+
+Bạn phải:
+- tự phân tích dữ liệu
+- tự thiết kế hệ thống
+- tự tạo dữ liệu huấn luyện nếu thiếu
+- xây dựng mô hình AI
+- triển khai thuật toán DSS
+- viết code chạy được
+- tạo tài liệu báo cáo hoàn chỉnh
+
+Không hỏi lại người dùng. Nếu thiếu dữ liệu hãy **tự đưa ra giả định hợp lý**.
+
+---
+
+# TÊN DỰ ÁN
+
+Hệ hỗ trợ ra quyết định lựa chọn xe máy sử dụng **AI + AHP + DSS**  
+Phương pháp: **Phương án A – AI dự đoán trọng số AHP**
+
+---
+
+# DATASET CÓ SẴN
+
+Dataset xe máy có các cột:
+
+brand  
+model  
+vehicle_type  
+engine_cc  
+price_million_vnd  
+fuel_consumption_l_per_100km  
+performance_score  
+design_score  
+brand_score  
+
+Mỗi dòng đại diện cho một mẫu xe.
+
+Dataset này đóng vai trò **cơ sở dữ liệu các phương án (alternatives database)** cho hệ DSS.
+
+---
+
+# TIÊU CHÍ AHP (5 TIÊU CHÍ)
+
+Sử dụng 5 tiêu chí sau:
+
+1. Price = price_million_vnd (Cost)
+2. Fuel Consumption = fuel_consumption_l_per_100km (Cost)
+3. Performance = performance_score (Benefit)
+4. Design = design_score (Benefit)
+5. Brand = brand_score (Benefit)
+
+---
+
+# Ý TƯỞNG CHÍNH (PHƯƠNG ÁN A)
+
+Mô hình AI sẽ học ánh xạ:
+
+user_profile  →  vector trọng số AHP
+
+w_price  
+w_fuel  
+w_performance  
+w_design  
+w_brand  
+
+Điều kiện:
+
+Tổng các trọng số phải bằng 1.
+
+Các trọng số này sẽ được DSS sử dụng để xếp hạng xe máy.
+
+---
+
+# YÊU CẦU MÔ HÌNH AI
+
+Bắt buộc sử dụng **Random Forest Regressor** để dự đoán trọng số AHP.
+
+Mô hình phải:
+
+- sử dụng **Multi-output Random Forest Regression**
+- dự đoán 5 giá trị trọng số
+- chuẩn hóa lại để đảm bảo tổng trọng số = 1
+
+Thư viện đề xuất:
+
+scikit-learn
+
+Ví dụ mô hình:
+
+RandomForestRegressor
+
+---
+
+# QUY TRÌNH HỆ THỐNG
+
+User nhập thông tin  
+↓  
+AI (Random Forest) dự đoán trọng số AHP  
+↓  
+Lọc các xe không phù hợp  
+↓  
+Chuẩn hóa dữ liệu tiêu chí  
+↓  
+Tính điểm tổng  
+↓  
+Xếp hạng xe  
+↓  
+Trả kết quả Top N + giải thích
+
+---
+
+# NHIỆM VỤ BẮT BUỘC CỦA AGENT
+
+## 1. PHÂN TÍCH DATASET
+
+Phân tích dataset xe máy và giải thích vai trò của từng cột trong hệ DSS.
+
+---
+
+## 2. THIẾT KẾ KIẾN TRÚC HỆ THỐNG
+
+Thiết kế kiến trúc hệ thống gồm:
+
+User Interface  
+AI Model (Random Forest)  
+AHP Module  
+Decision Engine  
+Motorcycle Database  
+
+Cung cấp **sơ đồ kiến trúc hệ thống bằng Mermaid diagram**.
+
+---
+
+## 3. THIẾT KẾ KHẢO SÁT AHP
+
+Tạo bộ khảo sát **so sánh cặp (pairwise comparison)** cho 5 tiêu chí.
+
+Bao gồm **10 câu hỏi so sánh**.
+
+Giải thích:
+
+- Thang đo Saaty 1–9
+- Cách tính vector trọng số
+- Cách tính Consistency Ratio (CR)
+- Điều kiện CR ≤ 0.1
+
+---
+
+## 4. THIẾT KẾ DATASET TRAIN CHO AI
+
+Tạo cấu trúc hai bảng:
+
+### user_profile
+
+Ví dụ các cột:
+
+budget  
+purpose  
+vehicle_type_preference  
+daily_distance_km  
+priority_price  
+priority_fuel  
+priority_performance  
+priority_design  
+priority_brand  
+
+### ahp_weights
+
+w_price  
+w_fuel  
+w_performance  
+w_design  
+w_brand  
+
+---
+
+## 5. TẠO DỮ LIỆU TRAIN GIẢ LẬP
+
+Vì chưa có khảo sát thực tế, hãy tạo **300 mẫu dữ liệu user**.
+
+Logic:
+
+Sinh viên → ưu tiên giá và xăng  
+Nhân viên văn phòng → ưu tiên thiết kế và thương hiệu  
+Người đi tour → ưu tiên hiệu năng  
+Người chạy dịch vụ → ưu tiên tiết kiệm xăng  
+
+Trọng số phải **tổng bằng 1**.
+
+---
+
+## 6. MÔ HÌNH AI (RANDOM FOREST)
+
+Huấn luyện mô hình:
+
+RandomForestRegressor
+
+Mô tả:
+
+features đầu vào  
+one-hot encoding cho purpose và vehicle_type  
+train/test split  
+hyperparameters của Random Forest  
+evaluation metrics (MAE, MSE)
+
+Sau khi dự đoán:
+
+chuẩn hóa lại vector trọng số để tổng bằng 1.
+
+---
+
+## 7. THUẬT TOÁN DSS
+
+Chuẩn hóa dữ liệu:
+
+Cost criteria
+
+norm = (max − x) / (max − min)
+
+Benefit criteria
+
+norm = (x − min) / (max − min)
+
+Sau đó tính:
+
+Score(i) = Σ wj * norm(xij)
+
+Xếp hạng các xe.
+
+---
+
+## 8. MODULE GIẢI THÍCH
+
+Tạo giải thích cho kết quả.
+
+Ví dụ:
+
+"Xe này đứng đầu vì người dùng ưu tiên tiết kiệm nhiên liệu và giá thấp."
+
+Hiển thị đóng góp của từng tiêu chí.
+
+---
+
+## 9. CODE PYTHON HOÀN CHỈNH
+
+Viết code Python gồm:
+
+load dataset xe máy
+
+tạo dữ liệu user giả lập
+
+train mô hình Random Forest
+
+dự đoán trọng số
+
+chuẩn hóa tiêu chí
+
+xếp hạng xe
+
+in Top 5 xe phù hợp
+
+Code phải:
+
+có comment  
+có hàm main()  
+có cấu trúc rõ ràng
+
+---
+
+## 10. DEMO
+
+Tạo 2 người dùng giả lập:
+
+Sinh viên → ưu tiên giá và xăng
+
+Nhân viên văn phòng → ưu tiên thiết kế và thương hiệu
+
+Hiển thị:
+
+trọng số dự đoán  
+Top 5 xe đề xuất
+
+---
+
+## 11. BÁO CÁO CUỐI
+
+Tạo tài liệu có thể dùng cho báo cáo gồm:
+
+Giới thiệu  
+Phương pháp AI + AHP + DSS  
+Mô tả dữ liệu  
+Kiến trúc hệ thống  
+Kết quả demo  
+Kết luận
+
+Viết theo phong cách **báo cáo học thuật**.
+
+---
+
+# YÊU CẦU KIỂM TRA
+
+Trước khi kết thúc phải kiểm tra:
+
+trọng số tổng = 1  
+chuẩn hóa đúng  
+code chạy được  
+có sơ đồ hệ thống
+
+---
+
+# KẾT THÚC NHIỆM VỤ
+
+Agent phải hoàn thành **toàn bộ dự án DSS tự động** dựa trên dataset xe máy.

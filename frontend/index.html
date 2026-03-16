@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motor Choice DSS – Hệ Hỗ Trợ Ra Quyết Định Lựa Chọn Xe Máy</title>
+  <meta name="description" content="Hệ thống DSS thông minh sử dụng AI (Random Forest) + AHP giúp bạn chọn xe máy phù hợp nhất." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js for Radar Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ====== HEADER ====== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">🏍️</span>
+      <div>
+        <span class="logo-title">Motor<span class="accent">Choice</span></span>
+        <span class="logo-sub">DSS · AI · AHP</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#form-section" class="nav-link active" data-tab="recommend">Tư vấn xe</a>
+      <a href="#" class="nav-link" data-tab="database">Cơ sở dữ liệu</a>
+      <a href="#" class="nav-link" data-tab="ahp">AHP Calculator</a>
+      <a href="#" class="nav-link" data-tab="about">Về hệ thống</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ====== HERO ====== -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🤖 AI-Powered Decision Support System</div>
+    <h1 class="hero-title">Chọn Xe Máy<br/><span class="gradient-text">Thông Minh Hơn</span></h1>
+    <p class="hero-desc">
+      Hệ thống sử dụng <strong>Random Forest AI</strong> kết hợp phương pháp <strong>AHP</strong>
+      để phân tích hồ sơ cá nhân và đề xuất xe máy phù hợp nhất với bạn.
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num" id="stat-bikes">98</span><span class="stat-label">Mẫu xe</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">5</span><span class="stat-label">Tiêu chí AHP</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">300</span><span class="stat-label">Mẫu train</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><span class="stat-num">RF</span><span class="stat-label">Random Forest</span></div>
+    </div>
+    <a href="#form-section" class="btn-hero">Bắt đầu tư vấn ↓</a>
+  </div>
+  <div class="hero-visual">
+    <div class="orbit-ring ring-1"></div>
+    <div class="orbit-ring ring-2"></div>
+    <div class="orbit-ring ring-3"></div>
+    <div class="center-icon">🏍️</div>
+  </div>
+</section>
+
+<!-- ====== MAIN CONTENT ====== -->
+<main class="main-content">
+
+  <!-- TAB: TƯ VẤN XE -->
+  <section class="tab-section active" id="tab-recommend">
+
+    <!-- Form -->
+    <section class="form-section" id="form-section">
+      <div class="section-header">
+        <h2>Nhập Thông Tin Cá Nhân</h2>
+        <p>AI sẽ phân tích profile và dự đoán trọng số AHP phù hợp nhất với bạn</p>
+      </div>
+
+      <form class="profile-form" id="profileForm">
+        <div class="form-grid">
+
+          <!-- Nhóm 1: Thông tin cơ bản -->
+          <div class="form-card">
+            <div class="form-card-header">
+              <span class="form-card-icon">👤</span>
+              <h3>Thông Tin Cơ Bản</h3>
+            </div>
+
+            <div class="form-group">
+              <label for="budget">💰 Ngân sách (triệu VNĐ)</label>
+              <div class="input-range-wrap">
+                <input type="range" id="budget" name="budget" min="15" max="150" value="40" step="1" />
+                <output for="budget" id="budgetVal" class="range-val">40M</output>
+              </div>
+              <div class="range-hints"><span>15M</span><span>150M</span></div>
+            </div>
+
+            <div class="form-group">
+              <label for="daily_distance_km">📍 Quảng đường hàng ngày (km)</label>
+              <div class="input-range-wrap">
+                <input type="range" id="daily_distance_km" min="1" max="200" value="20" step="1" />
+                <output class="range-val" id="kmVal">20km</output>
+              </div>
+              <div class="range-hints"><span>1km</span><span>200km</span></div>
+            </div>
+          </div>
+
+          <!-- Nhóm 2: Mục đích và loại xe -->
+          <div class="form-card">
+            <div class="form-card-header">
+              <span class="form-card-icon">🎯</span>
+              <h3>Mục Đích Sử Dụng</h3>
+            </div>
+
+            <div class="form-group">
+              <label>Bạn là ai?</label>
+              <div class="radio-group" id="purposeGroup">
+                <label class="radio-card active">
+                  <input type="radio" name="purpose" value="0" checked />
+                  <span class="radio-icon">🎓</span>
+                  <span class="radio-label">Sinh viên</span>
+                  <span class="radio-desc">Ưu tiên giá & xăng</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="purpose" value="1" />
+                  <span class="radio-icon">💼</span>
+                  <span class="radio-label">Văn phòng</span>
+                  <span class="radio-desc">Ưu tiên thiết kế & thương hiệu</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="purpose" value="2" />
+                  <span class="radio-icon">🏕️</span>
+                  <span class="radio-label">Đi tour</span>
+                  <span class="radio-desc">Ưu tiên hiệu năng</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="purpose" value="3" />
+                  <span class="radio-icon">📦</span>
+                  <span class="radio-label">Dịch vụ</span>
+                  <span class="radio-desc">Ưu tiên tiết kiệm & bền</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Loại xe ưa thích</label>
+              <div class="radio-group" id="vtypeGroup">
+                <label class="radio-card active">
+                  <input type="radio" name="vehicle_type_preference" value="0" checked />
+                  <span class="radio-icon">⚙️</span>
+                  <span class="radio-label">Xe số</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="vehicle_type_preference" value="1" />
+                  <span class="radio-icon">🛵</span>
+                  <span class="radio-label">Tay ga</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="vehicle_type_preference" value="2" />
+                  <span class="radio-icon">🏍️</span>
+                  <span class="radio-label">Côn tay</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="vehicle_type_preference" value="3" />
+                  <span class="radio-icon">🔍</span>
+                  <span class="radio-label">Tất cả</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nhóm 3: Độ ưu tiên -->
+          <div class="form-card full-width">
+            <div class="form-card-header">
+              <span class="form-card-icon">⚖️</span>
+              <h3>Mức Độ Ưu Tiên Các Tiêu Chí</h3>
+              <span class="badge-info">AI sẽ tính toán trọng số AHP dựa trên thông tin này</span>
+            </div>
+            <div class="priority-grid">
+              <div class="priority-item">
+                <div class="priority-header">
+                  <span>💰 Giá thành</span>
+                  <span id="p_price_val" class="priority-val">50%</span>
+                </div>
+                <input type="range" id="priority_price" name="priority_price" min="0" max="100" value="50" step="5" class="priority-range" />
+              </div>
+              <div class="priority-item">
+                <div class="priority-header">
+                  <span>⛽ Tiết kiệm xăng</span>
+                  <span id="p_fuel_val" class="priority-val">40%</span>
+                </div>
+                <input type="range" id="priority_fuel" name="priority_fuel" min="0" max="100" value="40" step="5" class="priority-range" />
+              </div>
+              <div class="priority-item">
+                <div class="priority-header">
+                  <span>⚡ Hiệu năng</span>
+                  <span id="p_perf_val" class="priority-val">30%</span>
+                </div>
+                <input type="range" id="priority_performance" name="priority_performance" min="0" max="100" value="30" step="5" class="priority-range" />
+              </div>
+              <div class="priority-item">
+                <div class="priority-header">
+                  <span>🎨 Thiết kế</span>
+                  <span id="p_design_val" class="priority-val">30%</span>
+                </div>
+                <input type="range" id="priority_design" name="priority_design" min="0" max="100" value="30" step="5" class="priority-range" />
+              </div>
+              <div class="priority-item">
+                <div class="priority-header">
+                  <span>🏅 Thương hiệu</span>
+                  <span id="p_brand_val" class="priority-val">25%</span>
+                </div>
+                <input type="range" id="priority_brand" name="priority_brand" min="0" max="100" value="25" step="5" class="priority-range" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-demo" onclick="loadDemo(0)">🎓 Demo: Sinh viên</button>
+          <button type="button" class="btn-demo" onclick="loadDemo(1)">💼 Demo: Văn phòng</button>
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="btn-text">🔍 Tìm xe phù hợp</span>
+            <span class="btn-spinner hidden">⏳</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results -->
+    <section class="results-section hidden" id="resultsSection">
+      <div class="section-header">
+        <h2>Kết Quả Đề Xuất</h2>
+        <p id="resultMeta">Đang load...</p>
+      </div>
+
+      <!-- AI Weight Card -->
+      <div class="weight-panel" id="weightPanel">
+        <div class="weight-panel-title">
+          <span>🤖 Trọng số AHP dự đoán bởi Random Forest</span>
+          <span class="tag-ai">AI Generated</span>
+        </div>
+        <div class="weight-bars" id="weightBars"></div>
+      </div>
+
+      <!-- Warning -->
+      <div class="alert-warning hidden" id="resultWarning"></div>
+
+      <!-- Explanation -->
+      <div class="explanation-card" id="explanationCard"></div>
+
+      <!-- ====== RADAR CHART ====== -->
+      <div class="radar-section" id="radarSection">
+        <div class="section-sub-header">
+          <h3>🕸️ Radar Chart – So Sánh Top 3 Xe</h3>
+          <p>Biểu đồ nhện thể hiện điểm chuẩn hóa của từng tiêu chí AHP</p>
+        </div>
+        <div class="radar-wrap">
+          <canvas id="radarChart" width="500" height="400"></canvas>
+        </div>
+      </div>
+
+      <!-- ====== RESULTS GRID ====== -->
+      <div class="results-grid-header">
+        <h3>🏆 Danh Sách Xe Đề Xuất</h3>
+        <span class="compare-hint" id="compareHint">Chọn 2–3 xe để so sánh ✓</span>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+
+      <!-- Compare button -->
+      <div class="compare-bar" id="compareBar">
+        <span id="compareCount">0 xe được chọn</span>
+        <button class="btn-compare" id="btnCompare" onclick="openCompareModal()">⚖️ So Sánh Xe</button>
+        <button class="btn-compare-clear" onclick="clearCompare()">✕ Bỏ chọn</button>
+      </div>
+
+      <!-- ====== SENSITIVITY ANALYSIS ====== -->
+      <div class="sensitivity-section" id="sensitivitySection">
+        <div class="section-sub-header">
+          <h3>📊 Sensitivity Analysis – Phân Tích Độ Nhạy</h3>
+          <p>Kéo thanh trọng số để xem ranking thay đổi <strong>real-time</strong> (không cần gọi lại AI)</p>
+        </div>
+        <div class="sensitivity-layout">
+          <div class="sensitivity-controls">
+            <div class="sens-weights" id="sensWeights"></div>
+            <div class="sens-note">⚡ Tổng trọng số: <strong id="sensTotal">100%</strong></div>
+            <button class="btn-sens-reset" onclick="resetSensitivity()">↺ Khôi phục trọng số AI</button>
+          </div>
+          <div class="sensitivity-result">
+            <div class="sens-ranking" id="sensRanking"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-reset" onclick="resetForm()">↩ Tư vấn lại</button>
+    </section>
+  </section>
+
+  <!-- TAB: CƠ SỞ DỮ LIỆU -->
+  <section class="tab-section hidden" id="tab-database">
+    <div class="section-header">
+      <h2>Cơ Sở Dữ Liệu Xe Máy</h2>
+      <p>Tổng cộng <strong id="dbTotal">--</strong> mẫu xe, dùng làm phương án (alternatives) cho hệ DSS</p>
+    </div>
+
+    <div class="db-controls">
+      <input type="text" id="dbSearch" placeholder="🔍 Tìm kiếm theo tên, hãng..." class="db-search-input" />
+      <select id="dbTypeFilter" class="db-filter">
+        <option value="">Tất cả loại xe</option>
+        <option value="Xe số">Xe số</option>
+        <option value="Xe tay ga">Xe tay ga</option>
+        <option value="Xe côn tay">Xe côn tay</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table" id="dbTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Hãng</th>
+            <th>Model</th>
+            <th>Loại</th>
+            <th>Dung tích (cc)</th>
+            <th>Giá (triệu)</th>
+            <th>XL (L/100km)</th>
+            <th>Hiệu năng</th>
+            <th>Thiết kế</th>
+            <th>Thương hiệu</th>
+          </tr>
+        </thead>
+        <tbody id="dbTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB: AHP CALCULATOR -->
+  <section class="tab-section hidden" id="tab-ahp">
+    <div class="section-header">
+      <h2>AHP Pairwise Calculator</h2>
+      <p>Nhập ma trận so sánh cặp (Saaty 1-9) để tính trọng số AHP thủ công</p>
+    </div>
+
+    <div class="ahp-layout">
+      <div class="ahp-info-card">
+        <h3>📐 Thang đo Saaty</h3>
+        <table class="saaty-table">
+          <tr><th>Giá trị</th><th>Ý nghĩa</th></tr>
+          <tr><td>1</td><td>Quan trọng ngang nhau</td></tr>
+          <tr><td>3</td><td>Quan trọng hơn một chút</td></tr>
+          <tr><td>5</td><td>Quan trọng hơn nhiều</td></tr>
+          <tr><td>7</td><td>Quan trọng hơn rất nhiều</td></tr>
+          <tr><td>9</td><td>Cực kỳ quan trọng hơn</td></tr>
+          <tr><td>2,4,6,8</td><td>Giá trị trung gian</td></tr>
+          <tr><td>1/n</td><td>Nghịch đảo (kém quan trọng hơn)</td></tr>
+        </table>
+        <div class="ahp-note">
+          <strong>CR ≤ 0.1</strong> → Ma trận nhất quán<br/>
+          <strong>CR > 0.1</strong> → Cần điều chỉnh lại
+        </div>
+      </div>
+
+      <div class="ahp-matrix-card">
+        <h3>Ma Trận So Sánh Cặp 5×5</h3>
+        <p class="matrix-desc">Tiêu chí: Giá · Xăng · Hiệu năng · Thiết kế · Thương hiệu</p>
+        <div class="matrix-container" id="ahpMatrix"></div>
+        <div class="ahp-actions">
+          <button class="btn-ahp-reset" onclick="resetAHPMatrix()">↺ Reset ma trận</button>
+          <button class="btn-ahp-calc" onclick="calculateAHP()">⚡ Tính AHP</button>
+        </div>
+        <div class="ahp-result hidden" id="ahpResult"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB: ABOUT -->
+  <section class="tab-section hidden" id="tab-about">
+    <div class="section-header">
+      <h2>Về Hệ Thống</h2>
+      <p>Dự án môn Hệ Hỗ Trợ Ra Quyết Định – Phương án A: AI dự đoán trọng số AHP</p>
+    </div>
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card-icon">🤖</div>
+        <h3>Random Forest AI</h3>
+        <p>Multi-output Random Forest Regressor học ánh xạ từ user profile → vector trọng số AHP. Được huấn luyện với 300 mẫu dữ liệu giả lập theo 4 nhóm người dùng.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">⚖️</div>
+        <h3>Phương pháp AHP</h3>
+        <p>Analytic Hierarchy Process với 5 tiêu chí: Giá, Xăng, Hiệu năng, Thiết kế, Thương hiệu. Trọng số được AI dự đoán và chuẩn hóa (tổng = 1).</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">📊</div>
+        <h3>DSS Engine</h3>
+        <p>Chuẩn hóa Min-Max theo loại tiêu chí (Cost/Benefit). Tính điểm tổng theo công thức Score = Σ wj × norm(xij). Xếp hạng đề xuất Top N xe.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card-icon">🗃️</div>
+        <h3>Dataset</h3>
+        <p>98 mẫu xe máy từ các thương hiệu: Honda, Yamaha, Suzuki, SYM, Piaggio, Vespa, Kymco, Benelli, GPX. Phủ đầy đủ 3 loại: Xe số, Tay ga, Côn tay.</p>
+      </div>
+    </div>
+
+    <div class="architecture-card">
+      <h3>🏗️ Kiến Trúc Hệ Thống</h3>
+      <div class="arch-flow">
+        <div class="arch-step user">👤<br/>User Input</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step ai">🤖<br/>Random Forest<br/><small>Predict AHP Weights</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step filter">🔽<br/>Filter<br/><small>Budget & Type</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step norm">📐<br/>Normalize<br/><small>Min-Max</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step score">📊<br/>Score<br/><small>Σ w×norm</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step result">🏆<br/>Top N<br/><small>Results</small></div>
+      </div>
+    </div>
+
+    <div class="model-metrics" id="modelMetrics">
+      <h3>📈 Chỉ Số Mô Hình</h3>
+      <div class="metrics-grid" id="metricsGrid">
+        <div class="metric-card"><span class="metric-label">Trạng thái</span><span class="metric-val" id="m-status">Loading...</span></div>
+        <div class="metric-card"><span class="metric-label">MAE</span><span class="metric-val" id="m-mae">--</span></div>
+        <div class="metric-card"><span class="metric-label">RMSE</span><span class="metric-val" id="m-rmse">--</span></div>
+        <div class="metric-card"><span class="metric-label">Mẫu xe</span><span class="metric-val" id="m-bikes">--</span></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ====== COMPARE MODAL ====== -->
+<div class="modal-overlay hidden" id="compareModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>⚖️ So Sánh Chi Tiết Xe Máy</h2>
+      <button class="modal-close" onclick="closeCompareModal()">✕</button>
+    </div>
+    <div class="modal-body" id="compareModalBody"></div>
+  </div>
+</div>
+
+<!-- ====== FOOTER ====== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span>🏍️ <strong>Motor Choice DSS</strong> – Hệ Hỗ Trợ Ra Quyết Định Lựa Chọn Xe Máy</span>
+    <span>AI + AHP + Random Forest | Môn HHTRQD – HCMUNRE</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
