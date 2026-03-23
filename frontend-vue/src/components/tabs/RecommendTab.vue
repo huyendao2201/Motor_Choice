@@ -3,7 +3,7 @@
     <!-- ===== HERO ===== -->
     <section class="hero">
       <div class="hero-content">
-        <div class="hero-badge badge badge-primary">🤖 AI-Powered Decision Support System</div>
+        <div class="hero-badge badge badge-primary">🤖 AI tư vấn chọn xe máy - Hệ hỗ trợ ra quyết định</div>
         <h1>Khám Phá Xe Lý Tưởng<br /><span class="gradient-text">Dành Riêng Cho Bạn</span></h1>
         <p class="hero-desc">
           Giải pháp <span class="highlight">AI</span> tư vấn xe máy dựa trên <span class="highlight">Random Forest</span> & <span class="highlight">AHP</span>.<br />
@@ -11,10 +11,10 @@
         </p>
         
         <div class="hero-actions">
-          <a href="#form-section" class="btn btn-primary hero-cta">
-            Khám phá xe phù hợp ngay 🚀
+          <button @click="scrollToForm" class="btn btn-primary hero-cta">
+            Tìm xe phù hợp ngay 🚀
             <span class="cta-arrow">↓</span>
-          </a>
+          </button>
           <div class="trust-signals">
             <span class="trust-item">Phân tích thông minh</span>
             <span class="trust-sep"></span>
@@ -66,11 +66,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import ManualAHPWizard from '../ManualAHPWizard.vue'
 import { getStats } from '../../api.js'
 
 const stats = ref({})
+const scrollToForm = inject('scrollToForm')
 
 onMounted(async () => {
   try {
@@ -170,10 +171,10 @@ h1 { font-size: 3.8rem; line-height: 1.1; margin: 0; }
 .center-icon {
   position: absolute; top: 50%; left: 50%;
   width: 340px; height: 340px;
-  background: var(--glass);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(1px);
   border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   transform: translate(-50%, -50%);

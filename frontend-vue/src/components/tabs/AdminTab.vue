@@ -1,8 +1,8 @@
 <template>
   <div class="admin-tab page-container">
     <div class="section-title">
-      <h2>🛠️ Quản trị hệ thống</h2>
-      <p>Quản lý danh sách xe, hiệu chỉnh thông số và đào tạo lại mô hình AI</p>
+      <h2 style = "font-size: 35px;"> Quản trị hệ thống</h2>
+      <p style = "font-size: 15px;">Quản lý danh sách xe, hiệu chỉnh thông số và đào tạo lại mô hình AI</p>
     </div>
 
     <!-- Login View -->

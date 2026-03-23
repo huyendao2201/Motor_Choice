@@ -1,8 +1,8 @@
 <template>
   <div class="db-tab page-container">
     <div class="section-title">
-      <h2>🗃️ Danh sách xe</h2>
-      <p>Tổng cộng <strong class="text-success">{{ filtered.length }}</strong> / {{ all.length }} mẫu xe · Đây là tập alternatives cho hệ DSS</p>
+      <h2 style = "font-size: 35px;"> Danh sách xe</h2>
+      <p style = "font-size: 15px;">Tổng cộng <strong class="text-success">{{ filtered.length }}</strong> / {{ all.length }} mẫu xe · Đây là tập alternatives cho hệ DSS</p>
     </div>
 
     <!-- Controls -->
@@ -77,7 +77,7 @@
             <td>
               <div class="bike-img-placeholder">
                 <img v-if="b.image_url" :src="b.image_url" :alt="b.model" class="bike-img-thumbnail" />
-                <span v-else style="opacity: 0.3; font-size: 1.5rem;">🏍️</span>
+                <img v-else src="/logo-bike.png" alt="Placeholder" style="width: 1.5rem; height: 1.5rem; object-fit: contain; opacity: 0.4;" />
               </div>
             </td>
             <td><strong>{{ b.brand }}</strong></td>
@@ -220,28 +220,28 @@ const ScoreBar = defineComponent({
 .search-wrap {
   position: relative; display: flex; align-items: center;
   background: var(--bg-item); border: var(--border); border-radius: 16px;
-  padding: 14px 20px; gap: 14px;
+  padding: 16px 24px; gap: 14px;
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
 }
 .search-wrap:focus-within { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.search-icon { font-size: 1.1rem; flex-shrink: 0; }
-.search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-header); font-family: var(--font); font-size: 1rem; font-weight: 600; }
+.search-icon { font-size: 1.2rem; flex-shrink: 0; }
+.search-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-header); font-family: var(--font); font-size: 1.1rem; font-weight: 600; }
 .search-input::placeholder { color: var(--text-dim); font-weight: 500; }
 .search-clear { background: var(--bg-2); border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.8rem; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .search-clear:hover { background: var(--danger-dim); color: var(--danger); }
 
 .filter-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .filter-btn {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 18px; border-radius: 12px; border: var(--border);
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 28px; border-radius: 16px; border: var(--border);
   background: var(--bg-item); color: var(--text-secondary); cursor: pointer;
-  font-family: var(--font); font-size: 0.85rem; font-weight: 700;
+  font-family: var(--font); font-size: 1.1rem; font-weight: 700;
   transition: var(--transition);
 }
 .filter-btn:hover { border-color: var(--primary-light); color: var(--text-header); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .filter-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(67, 56, 202, 0.2); }
-.filter-count { background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px 6px; font-size: 0.7rem; font-weight: 800; }
+.filter-count { background: rgba(0,0,0,0.05); border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: 800; }
 .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); color: white; }
 
 /* Stats */
@@ -255,8 +255,8 @@ const ScoreBar = defineComponent({
 .table-wrap { padding: 0; overflow: hidden; border-radius: var(--r-xl); }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; }
 .data-table th { 
-  background: var(--bg-2); padding: 16px 20px; 
-  font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  background: var(--bg-2); padding: 18px 24px; 
+  font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
   color: var(--text-secondary); border-bottom: var(--border);
 }
 
@@ -272,7 +272,7 @@ const ScoreBar = defineComponent({
 
 .data-table tr { transition: var(--transition); }
 .data-table tr:hover:not(thead tr) { background: var(--bg-2); }
-.data-table td { padding: 16px 20px; border-bottom: var(--border); font-size: 0.9rem; font-weight: 600; color: var(--text-header); vertical-align: middle; }
+.data-table td { padding: 18px 24px; border-bottom: var(--border); font-size: 1rem; font-weight: 600; color: var(--text-header); vertical-align: middle; }
 
 .sortable { cursor: pointer; user-select: none; }
 .sortable:hover { color: var(--primary); }

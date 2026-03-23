@@ -5,7 +5,7 @@
     <div class="bg-blob blob-2" :style="{ opacity: isDark ? 0.12 : 0.06 }"></div>
     <div class="bg-blob blob-3" :style="{ opacity: isDark ? 0.12 : 0.06 }"></div>
 
-    <!-- Header / Nav -->
+    <!-- Header -->
     <TheHeader 
       :active-tab="activeTab" 
       :is-dark="isDark"
@@ -13,19 +13,15 @@
       @theme-toggle="toggleTheme"
     />
 
-    <!-- Main Content -->
+    <!-- Main -->
     <main class="app-main">
       <transition name="tab-fade" mode="out-in">
-        <!-- TAB: TƯ VẤN XE -->
-        <RecommendTab v-if="activeTab === 'recommend'" :key="'rec-' + recommendKey" />
-
-        <!-- TAB: CƠ SỞ DỮ LIỆU -->
+        <RecommendTab 
+          v-if="activeTab === 'recommend'" 
+          :key="'rec-' + recommendKey" 
+        />
         <DatabaseTab v-else-if="activeTab === 'database'" key="database" />
-
-        <!-- TAB: VỀ HỆ THỐNG -->
         <AboutTab v-else-if="activeTab === 'about'" key="about" />
-
-        <!-- TAB: ADMIN -->
         <AdminTab v-else-if="activeTab === 'admin'" key="admin" />
       </transition>
     </main>
@@ -36,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, nextTick, watch, provide } from 'vue'
 import TheHeader from './components/TheHeader.vue'
 import TheFooter from './components/TheFooter.vue'
 import RecommendTab from './components/tabs/RecommendTab.vue'
@@ -48,12 +44,39 @@ const activeTab = ref('recommend')
 const recommendKey = ref(0)
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 
-const handleTabChange = (newTab) => {
-  if (newTab === 'recommend' && activeTab.value === 'recommend') {
-    recommendKey.value++ // Force reset RecommendTab
+// 🔥 Scroll helper (clean + chuẩn)
+const scrollToForm = async () => {
+  await nextTick()
+  const el = document.getElementById('form-section')
+  if (el) {
+    const HEADER_OFFSET = -120 // 🔥 chỉnh tại đây nếu cần
+    const y = el.offsetTop - HEADER_OFFSET
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+}
+
+provide('scrollToForm', scrollToForm)
+
+const handleTabChange = async (newTab, shouldScroll = true) => {
+  if (newTab === 'recommend' && activeTab.value === 'recommend') {
+    recommendKey.value++ // reset tab
+  }
+
   activeTab.value = newTab
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  if (newTab === 'recommend' && shouldScroll) {
+    // delay đủ lâu để transition "out-in" hoàn tất (transition khoảng 200-350ms)
+    setTimeout(() => {
+      scrollToForm()
+    }, 450)
+  } else {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
 }
 
 const toggleTheme = () => {
@@ -62,16 +85,8 @@ const toggleTheme = () => {
 }
 
 watch(isDark, (val) => {
-  if (val) {
-    document.documentElement.classList.add('dark-theme')
-  } else {
-    document.documentElement.classList.remove('dark-theme')
-  }
+  document.documentElement.classList.toggle('dark-theme', val)
 }, { immediate: true })
-
-onMounted(() => {
-  // Sync initial state if needed
-})
 </script>
 
 <style scoped>
@@ -81,12 +96,11 @@ onMounted(() => {
   overflow-x: hidden;
 }
 
-/* Animated background blobs */
+/* Background blobs */
 .bg-blob {
   position: fixed;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.12;
   pointer-events: none;
   z-index: 0;
   animation: blobFloat 12s ease-in-out infinite;
@@ -95,19 +109,16 @@ onMounted(() => {
   width: 600px; height: 600px;
   background: radial-gradient(circle, #6366f1, transparent);
   top: -200px; left: -200px;
-  animation-delay: 0s;
 }
 .blob-2 {
   width: 500px; height: 500px;
   background: radial-gradient(circle, #10b981, transparent);
   bottom: 100px; right: -150px;
-  animation-delay: 4s;
 }
 .blob-3 {
   width: 400px; height: 400px;
   background: radial-gradient(circle, #8b5cf6, transparent);
   top: 50%; left: 50%;
-  animation-delay: 8s;
 }
 
 @keyframes blobFloat {
@@ -119,12 +130,13 @@ onMounted(() => {
 .app-main {
   position: relative;
   z-index: 1;
-  padding-top: 70px; /* header height */
+  padding-top: 70px;
 }
 
-/* Tab transitions */
+/* Transition */
 .tab-fade-enter-active { animation: tabSlide 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .tab-fade-leave-active { animation: tabSlide 0.2s ease reverse; }
+
 @keyframes tabSlide {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }

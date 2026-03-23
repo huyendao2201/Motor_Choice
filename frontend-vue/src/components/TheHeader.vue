@@ -1,9 +1,11 @@
 <template>
   <header class="header">
     <div class="header-inner">
-      <!-- Logo -->
-      <div class="logo" @click="$emit('tab-change', 'recommend')" style="cursor: pointer;">
-        <span class="logo-icon">🏍️</span>
+      <!-- Logo (Home - No scroll to form) -->
+      <div class="logo" @click="$emit('tab-change', 'recommend', false)" style="cursor: pointer;">
+        <div class="logo-icon">
+          <img src="/logo-bike.png" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+        </div>
         <div>
           <div class="logo-title">Motor<span class="logo-accent">Choice</span></div>
           <div class="logo-sub">DSS · AI · AHP</div>
@@ -17,7 +19,7 @@
           :key="tab.id"
           class="nav-btn"
           :class="{ active: activeTab === tab.id }"
-          @click="$emit('tab-change', tab.id)"
+          @click="$emit('tab-change', tab.id, true)"
         >
           <span class="nav-icon">{{ tab.icon }}</span>
           <span class="nav-label">{{ tab.label }}</span>

@@ -2,8 +2,8 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-logo">
-        <span>🏍️</span>
-        <span><strong>MotorChoice DSS</strong> – Hệ Hỗ Trợ Ra Quyết Định Lựa Chọn Xe Máy</span>
+        <img src="/logo-bike.png" alt="Logo" style="height: 20px; object-fit: contain;" />
+        <span><strong>MotorChoice DSS</strong> – Hệ hỗ trợ quyết định chọn xe máy</span>
       </div>
       <div class="footer-info">
         <span class="badge badge-primary">AI + AHP + Random Forest</span>

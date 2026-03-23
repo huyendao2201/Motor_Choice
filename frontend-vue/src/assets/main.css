@@ -90,7 +90,10 @@
     margin: 0; padding: 0;
 }
 
-html { scroll-behavior: smooth; }
+html { 
+    scroll-behavior: smooth; 
+    font-size: 88%; /* Further scale down UI for better fit at 100% zoom */
+}
 
 body {
     font-family: var(--font);

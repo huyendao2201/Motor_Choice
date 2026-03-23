@@ -25,37 +25,48 @@
       <div v-else id="ai-results" class="glass-card step-content">
         <div class="step-title text-center">
           <h3>🤖 AI Random Forest Đã Đề Xuất</h3>
-          <p>Dưới đây là các phương án xe tốt nhất do AI đề xuất. Hãy chọn các mẫu xe bạn muốn phân tích kỹ hơn (nên chọn từ 2–5 xe để có ma trận tối ưu).</p>
+          <p>Dưới đây là các phương án xe do AI đề xuất. Hãy chọn các mẫu xe bạn muốn phân tích kỹ hơn.</p>
         </div>
 
         <div class="bike-selection">
           <div class="selected-count text-center">Đã chọn: <strong class="text-primary">{{ selectedBikes.length }}</strong> xe</div>
+          
+          <!-- Nút mở Modal thêm xe -->
+          <div class="add-extra-trigger text-center">
+            <button class="btn btn-add-favorite" @click="showBikePicker = true">
+              <span class="plus-icon">⊕</span> Thêm xe yêu thích từ danh sách khác
+            </button>
+          </div>
+
           <div class="bike-grid">
-            <div v-for="b in aiResult.top_motorcycles" :key="b.model" 
+            <!-- Luôn hiện các xe đã chọn (kể cả xe search thêm) -->
+            <div v-for="b in displayingBikes" :key="b.model" 
                  class="bike-card" 
-                 :class="{ selected: isSelected(b) }"
+                 :class="{ selected: isSelected(b), extra: !isFromAISuggestions(b) }"
                  @click="toggleBike(b)">
+              <div v-if="!isFromAISuggestions(b)" class="extra-badge">Yêu thích</div>
               <div class="bc-brand">{{ b.brand }}</div>
               <div class="bc-model">{{ b.model }}</div>
               <div class="bc-price">{{ b.price_million_vnd }} Triệu</div>
-              <div class="bc-score">AI Score: {{(b.total_score * 100).toFixed(1)}}%</div>
+              <div class="bc-score" v-if="b.total_score">AI Score: {{(b.total_score * 100).toFixed(1)}}%</div>
+              <div class="bc-score" v-else>Thêm thủ công</div>
+              <div class="select-indicator"></div>
             </div>
           </div>
         </div>
 
         <div class="step-actions center mode-actions">
           <div class="mode-card quick-ai" @click="showQuickResults = true">
-            <div class="mode-icon">⚡</div>
+            <div class="mode-icon"><h6>⚡ Kết quả AI nhanh</h6></div>
             <div class="mode-info">
-              <h5>Kết quả AI nhanh</h5>
+              
               <p>Xem đề xuất dựa trên mô hình Random Forest</p>
             </div>
             <button class="btn btn-primary">Xem ngay ➔</button>
           </div>
           <div class="mode-card expert-ahp" :class="{ disabled: selectedBikes.length < 2 }" @click="selectedBikes.length >= 2 && goToStep2()">
-            <div class="mode-icon">⚖️</div>
+            <div class="mode-icon"><h6>⚖️ Lập ma trận AHP</h6></div>
             <div class="mode-info">
-              <h5>Lập ma trận AHP</h5>
               <p>Kiểm chứng đa tiêu chí chuyên sâu (Khuyên dùng 2-5 xe)</p>
             </div>
             <button class="btn btn-secondary" :disabled="selectedBikes.length < 2">Bắt đầu ➔</button>
@@ -298,7 +309,7 @@
         <button class="btn btn-primary" @click="exportExcel" :disabled="isExporting">
           {{ isExporting ? 'Đang xuất...' : '📥 Xuất báo cáo Excel' }}
         </button>
-        <button class="btn btn-secondary" @click="step = 1; aiResult = null; selectedBikes = []">Tư vấn lại từ đầu</button>
+        <button class="btn btn-secondary" @click="fullReset">Tư vấn lại từ đầu</button>
       </div>
     </div>
 
@@ -334,17 +345,88 @@
         </div>
       </div>
     </div>
+    <!-- MODAL: Chọn xe yêu thích -->
+    <transition name="modal-fade">
+      <div v-if="showBikePicker" class="bike-picker-modal">
+        <div class="modal-backdrop" @click="showBikePicker = false"></div>
+        <div class="modal-sheet glass-card animate__animated animate__slideInUp">
+          <div class="modal-header">
+            <div class="mh-title">
+              <h3>⭐ Tìm & Thêm Xe Yêu Thích</h3>
+              <p>Chọn thêm các mẫu xe khác để đưa vào ma trận so sánh (Tối đa 5-8 xe tổng cộng)</p>
+            </div>
+            <button class="modal-close" @click="showBikePicker = false">✕</button>
+          </div>
+
+          <div class="picker-controls">
+            <div class="picker-search">
+              <span class="search-icon">🔍</span>
+              <input 
+                v-model="bikeSearchQuery" 
+                placeholder="Nhập tên xe muốn tìm (SH, Vision, Exciter...)" 
+                class="picker-input"
+                autofocus
+              />
+            </div>
+            <div class="brand-filters">
+              <button 
+                v-for="brand in ['Tất cả', 'Honda', 'Yamaha', 'Suzuki', 'Kawasaki', 'VinFast']" 
+                :key="brand"
+                class="brand-btn"
+                :class="{ active: selectedBrand === brand }"
+                @click="selectedBrand = brand"
+              >
+                {{ brand }}
+              </button>
+            </div>
+          </div>
+
+          <div class="picker-results-grid">
+            <div 
+              v-for="b in filteredPickerBikes" 
+              :key="b.model" 
+              class="picker-item"
+              :class="{ 'is-selected': isSelected(b) }"
+              @click="toggleBike(b)"
+            >
+              <div class="pi-check">✓</div>
+              <div class="pi-meta">{{ b.brand }} · {{ b.vehicle_type }}</div>
+              <div class="pi-model">{{ b.model }}</div>
+              <div class="pi-price">{{ b.price_million_vnd }}M VND</div>
+            </div>
+            
+            <div v-if="filteredPickerBikes.length === 0" class="no-results" style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-dim); font-weight: 700;">
+              📭 Không tìm thấy mẫu xe nào phù hợp
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <div class="selection-summary">Đã chọn: <strong>{{ selectedBikes.length }}</strong> xe</div>
+            <button class="btn btn-primary" @click="showBikePicker = false">Hoàn tất lựa chọn ➔</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, inject } from 'vue'
 import { Doughnut, Bar } from 'vue-chartjs'
 import {
   Chart as ChartJS, Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale
 } from 'chart.js'
 import { getMotorcycles, calculateAHP, recommend } from '../api.js'
 import ProfileForm from './ProfileForm.vue'
+
+const scrollToForm = inject('scrollToForm')
+
+function fullReset() {
+  step.value = 1
+  aiResult.value = null
+  selectedBikes.value = []
+  if (scrollToForm) scrollToForm()
+}
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale)
 
@@ -356,6 +438,74 @@ const aiResult = ref(null)
 const selectedBikes = ref([])
 const loadingAI = ref(false)
 const showQuickResults = ref(false)
+
+// Search Extra Bikes
+const allMotorcycles = ref([])
+const bikeSearchQuery = ref('')
+const showSearchDropdown = ref(false)
+const showBikePicker = ref(false)
+const selectedBrand = ref('Tất cả')
+
+onMounted(async () => {
+  try {
+    allMotorcycles.value = await getMotorcycles()
+  } catch (err) {
+    console.error("Failed to load all bikes for search", err)
+  }
+})
+
+const filteredPickerBikes = computed(() => {
+  // Fix: Lấy mảng 'motorcycles' từ object API trả về
+  let bikes = Array.isArray(allMotorcycles.value?.motorcycles) ? allMotorcycles.value.motorcycles : []
+  
+  // Filter by brand
+  if (selectedBrand.value !== 'Tất cả') {
+    bikes = bikes.filter(b => b.brand === selectedBrand.value)
+  }
+  
+  // Filter by search
+  if (bikeSearchQuery.value) {
+    const q = bikeSearchQuery.value.toLowerCase()
+    bikes = bikes.filter(b => 
+      b.model.toLowerCase().includes(q) || 
+      b.brand.toLowerCase().includes(q)
+    )
+  }
+  
+  return bikes.slice(0, 50) // Limit displayed for performance
+})
+
+const filteredExtraBikes = computed(() => {
+  const bikes = allMotorcycles.value?.motorcycles || []
+  if (!bikeSearchQuery.value || bikeSearchQuery.value.length < 1) return []
+  const q = bikeSearchQuery.value.toLowerCase()
+  return bikes.filter(b => 
+    b.model.toLowerCase().includes(q) || 
+    b.brand.toLowerCase().includes(q)
+  ).slice(0, 8)
+})
+
+const displayingBikes = computed(() => {
+  if (!aiResult.value) return []
+  // Combine AI suggestions with bikes manually selected but NOT in suggestions
+  const topModels = aiResult.value.top_motorcycles.map(b => b.model)
+  const extras = selectedBikes.value.filter(b => !topModels.includes(b.model))
+  return [...aiResult.value.top_motorcycles, ...extras]
+})
+
+function isFromAISuggestions(bike) {
+  if (!aiResult.value) return false
+  return aiResult.value.top_motorcycles.some(b => b.model === bike.model)
+}
+
+function addExtraBike(bike) {
+  const bikes = allMotorcycles.value?.motorcycles || []
+  if (!isSelected(bike)) {
+    selectedBikes.value.push(bike)
+  }
+  bikeSearchQuery.value = ''
+  showSearchDropdown.value = false
+}
 
 async function handleAISubmit(payload) {
   loadingAI.value = true
@@ -799,11 +949,11 @@ const manualBarOptions = {
 </script>
 
 <style scoped>
-.manual-ahp-wizard { width: 100%; max-width: 1200px; margin: 0 auto; padding: 20px 0; }
+.manual-ahp-wizard { width: 100%; max-width: 1050px; margin: 0 auto; padding: 15px 0 140px; }
 
 .wizard-header { 
   display: flex; align-items: center; justify-content: center; 
-  margin-bottom: 42px; 
+  margin-bottom: 30px; 
   padding: 0 20px;
 }
 .step-indicator { 
@@ -829,27 +979,186 @@ const manualBarOptions = {
 .wizard-step { padding: 25px 40px; animation: slideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
 @keyframes slideIn { from{opacity:0; transform:translateY(15px)} to{opacity:1; transform:translateY(0)} }
 
-.step-title { margin-bottom: 24px; text-align: center; }
+.step-title { margin-top: 25px; margin-bottom: 24px; text-align: center; }
 .step-title h3 { font-size: 1.75rem; color: var(--text-header); margin-bottom: 12px; font-weight: 900; letter-spacing: -0.5px; }
 .step-title p { color: var(--text-secondary); font-size: 1.05rem; max-width: 700px; margin: 0 auto; line-height: 1.6; }
 
 /* Bike Selection */
-.bike-selection { margin: 40px 0; }
-.selected-count { margin-bottom: 20px; font-weight: 800; font-size: 1.1rem; color: var(--text-secondary); }
+.bike-selection { margin: 20px 0; }
+.selected-count { margin-bottom: 8px; font-weight: 800; font-size: 1rem; color: var(--text-secondary); }
 .bike-grid { 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-  gap: 20px; 
-  margin-bottom: 30px; 
-  padding: 10px 5px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+  gap: 16px; 
+  margin-bottom: 20px; 
+  padding: 4px 5px;
 }
 .bike-card { 
-  padding: 24px; border-radius: var(--r-lg); 
+  padding: 16px 20px; border-radius: 18px; 
   background: var(--bg-item); border: var(--border); 
   cursor: pointer; transition: var(--transition);
-  position: relative; overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  position: relative; overflow: visible;
 }
+.bike-card::before {
+  content: ''; position: absolute; inset: 0; 
+  border-radius: inherit; border: 2.5px solid transparent; 
+  transition: all 0.3s ease; pointer-events: none; z-index: 2;
+}
+.bike-card.selected::before { border-color: var(--primary); }
+.bike-card.selected { background: var(--primary-dim); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(67, 56, 202, 0.15); }
+
+.select-indicator {
+  position: absolute; top: 12px; right: 12px; width: 22px; height: 22px;
+  border-radius: 50%; border: 2px solid var(--border-color);
+  background: white; transition: all 0.3s ease; z-index: 3;
+}
+.selected .select-indicator {
+  background: var(--primary); border-color: var(--primary);
+}
+.selected .select-indicator::after {
+  content: '✓'; color: white; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900;
+}
+
+.extra-badge {
+  position: absolute; top: -10px; left: 15px; 
+  background: #f59e0b; color: white; padding: 2px 10px;
+  border-radius: 6px; font-size: 0.65rem; font-weight: 800;
+  text-transform: uppercase; z-index: 5;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Search Box */
+.search-extra-bikes { max-width: 600px; margin: 0 auto 30px; position: relative; z-index: 100; }
+.search-input-wrapper { position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 16px; color: var(--text-dim); }
+.extra-bike-input {
+  width: 100%; padding: 14px 45px; border-radius: 16px;
+  border: 2px solid var(--border-color); background: var(--bg-card);
+  font-family: inherit; font-weight: 600; font-size: 0.95rem;
+  transition: all 0.3s ease; outline: none;
+}
+.extra-bike-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+.clear-search { position: absolute; right: 16px; border: none; background: transparent; cursor: pointer; color: var(--text-dim); padding: 5px; }
+
+.search-dropdown-results { 
+  position: absolute; top: calc(100% + 10px); left: 0; right: 0;
+  max-height: 400px; overflow-y: auto; z-index: 101;
+  padding: 8px; box-shadow: var(--shadow-xl);
+}
+.search-result-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-radius: 12px; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.search-result-item:hover { background: var(--primary-dim); }
+.sri-info { display: flex; flex-direction: column; }
+.sri-model { font-weight: 800; color: var(--text-header); }
+.sri-price { font-size: 0.8rem; color: var(--text-dim); }
+.sri-type { font-size: 0.75rem; background: var(--bg-2); padding: 2px 8px; border-radius: 6px; font-weight: 700; color: var(--text-secondary); }
+.sri-check { color: var(--primary); font-weight: 900; }
+
+.fade-in-enter-active, .fade-in-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.fade-in-enter-from, .fade-in-leave-to { opacity: 0; transform: translateY(-10px); }
+
+/* Picker Modal Styles */
+.bike-picker-modal {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+.modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+}
+.modal-sheet {
+  position: relative; width: 100%; max-width: 1000px;
+  height: 80vh; background: var(--bg-item);
+  border-radius: 30px; padding: 25px 30px;
+  display: flex; flex-direction: column; gap: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  margin-bottom: 60px; /* Nhấc Modal lên cao hơn nữa cho cân đối */
+  border: 1px solid var(--border-color);
+}
+
+.modal-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.mh-title h3 { font-size: 1.6rem; font-weight: 900; color: var(--text-header); margin-bottom: 4px; }
+.mh-title p { color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; }
+.modal-close { 
+  background: var(--bg-2); border: var(--border); 
+  width: 44px; height: 44px; border-radius: 50%;
+  font-size: 1.2rem; cursor: pointer; transition: 0.3s;
+}
+.modal-close:hover { background: var(--danger-dim); color: var(--danger); transform: rotate(90deg); }
+
+.picker-controls { display: flex; flex-direction: column; gap: 15px; }
+.picker-input {
+  width: 100%; padding: 14px 45px; border-radius: 16px;
+  border: 2px solid var(--border-color); background: var(--bg-card);
+  font-family: inherit; font-size: 0.95rem; font-weight: 700; outline: none;
+}
+.picker-search { position: relative; }
+.picker-search .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; opacity: 0.5; }
+
+.brand-filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+.brand-btn {
+  padding: 8px 18px; border-radius: 99px; border: var(--border);
+  background: var(--bg-card); color: var(--text-secondary);
+  font-weight: 700; cursor: pointer; transition: 0.3s; white-space: nowrap;
+}
+.brand-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.picker-results-grid {
+  flex: 1; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px; padding: 10px 5px;
+}
+.picker-item {
+  padding: 20px; border-radius: 20px; border: var(--border);
+  background: var(--bg-card); cursor: pointer; transition: 0.3s;
+  position: relative;
+}
+.picker-item:hover { transform: translateY(-3px); border-color: var(--primary-light); background: var(--bg-2); }
+.picker-item.is-selected { background: var(--primary-dim); border-color: var(--primary); }
+
+.pi-check {
+  position: absolute; top: 12px; right: 12px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: white; border: 1.5px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 900; color: transparent;
+  transition: 0.2s;
+}
+.is-selected .pi-check { background: var(--primary); border-color: var(--primary); color: white; }
+
+.pi-meta { font-size: 0.7rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+.pi-model { font-weight: 900; font-size: 1.1rem; color: var(--text-header); }
+.pi-price { font-size: 0.9rem; font-weight: 800; color: var(--accent); margin-top: 8px; }
+
+.modal-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 15px; border-top: 1px solid var(--border-color);
+}
+.selection-summary { font-weight: 800; color: var(--text-header); }
+
+.btn-add-favorite {
+  padding: 10px 20px; border-radius: 12px;
+  background: var(--bg-card); border: 2px dashed var(--primary-light);
+  color: var(--primary); font-weight: 800; font-size: 0.95rem;
+  cursor: pointer; transition: 0.3s;
+}
+.btn-add-favorite:hover {
+  background: var(--primary-dim); border-style: solid;
+  transform: translateY(-2px);
+}
+.plus-icon { font-size: 1.15rem; margin-right: 4px; vertical-align: middle; }
+.add-extra-trigger { margin-bottom: 30px; }
+.add-hint { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; font-weight: 600; }
+
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+.modal-fade-enter-active .modal-sheet { animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .bike-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
 .bike-card.selected { 
   border-color: var(--primary); 
@@ -857,17 +1166,17 @@ const manualBarOptions = {
   box-shadow: 0 10px 25px -5px rgba(67, 56, 202, 0.1); 
 }
 .bike-card.selected::after {
-  content: '✓'; position: absolute; top: 12px; right: 12px;
+  content: '✓'; position: absolute; top: 10px; right: 10px;
   background: var(--primary); color: white;
-  width: 24px; height: 24px; border-radius: 50%;
+  width: 18px; height: 18px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 0.8rem;
+  font-weight: 900; font-size: 0.65rem;
 }
 
-.bc-brand { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 800; margin-bottom: 4px; }
-.bc-model { font-weight: 900; font-size: 1.25rem; color: var(--text-header); margin-bottom: 8px; font-family: 'Outfit'; }
-.bc-price { color: var(--accent); font-weight: 800; font-size: 1.1rem; }
-.bc-score { font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-top: 12px; }
+.bc-brand { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; margin-bottom: 2px; }
+.bc-model { font-weight: 900; font-size: 1rem; color: var(--text-header); margin-bottom: 4px; font-family: 'Outfit'; }
+.bc-price { color: var(--accent); font-weight: 800; font-size: 0.9rem; }
+.bc-score { font-size: 0.75rem; color: var(--primary); font-weight: 700; margin-top: 8px; }
 
 /* Saaty Guide */
 .saaty-guide {
@@ -997,7 +1306,7 @@ const manualBarOptions = {
   align-items: center;
   justify-content: flex-end;
   gap: 16px;
-  margin-top: 40px;
+  margin-top: 24px;
 }
 
 .step-actions.center {
@@ -1046,7 +1355,8 @@ const manualBarOptions = {
 /* Mode Actions */
 .mode-actions { 
   display: grid; grid-template-columns: 1fr 1fr; gap: 20px; 
-  margin-top: 40px; text-align: left;
+  margin: 24px auto 0; text-align: left;
+  max-width: 900px; /* Tăng rộng lên một chút theo yêu cầu */
 }
 .mode-card {
   padding: 24px; border-radius: 20px; border: 2px solid var(--border-color);
@@ -1060,7 +1370,10 @@ const manualBarOptions = {
 .mode-info p { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
 .quick-ai { border-color: var(--primary-light); background: var(--primary-dim); }
 .expert-ahp { border-color: var(--border-color); }
-.actions-footer { margin-top: 30px; border-top: 1px dashed var(--border-color); padding-top: 20px; }
+.actions-footer { 
+  margin-top: 10px; border-top: 1px dashed var(--border-color); 
+  padding: 10px 0 25px; 
+}
 
 /* Quick Results Layer */
 .quick-results-layer {

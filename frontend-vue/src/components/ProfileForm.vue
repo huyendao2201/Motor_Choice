@@ -2,7 +2,7 @@
   <div class="profile-form-wrap">
     <div class="form-header">
       <h2>Nhập Thông Tin Cá Nhân</h2>
-      <p style = "font-size:20px">AI sẽ phân tích hồ sơ và dự đoán trọng số AHP phù hợp nhất với bạn</p>
+      <p style = "font-size:18px">AI sẽ phân tích hồ sơ và dự đoán trọng số AHP phù hợp nhất với bạn</p>
     </div>
 
     <form class="profile-form" @submit.prevent="handleSubmit">
@@ -179,7 +179,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick } from 'vue'
+import { ref, reactive, nextTick, inject } from 'vue'
+
+const scrollToForm = inject('scrollToForm')
 
 const props = defineProps({ loading: Boolean })
 const emit = defineEmits(['submit', 'demo'])
@@ -237,12 +239,12 @@ function loadDemo(idx) {
 
 function nextStep() {
   currentStep.value = 2;
-  nextTick(() => document.querySelector('.profile-form-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  if (scrollToForm) scrollToForm();
 }
 
 function prevStep() {
   currentStep.value = 1;
-  nextTick(() => document.querySelector('.profile-form-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  if (scrollToForm) scrollToForm();
 }
 
 function handleSubmit() {
@@ -273,21 +275,21 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-.profile-form-wrap { padding: 10px 0; }
-.form-header { text-align: center; margin-bottom: 24px; }
-.form-header h2 { font-size: 1.8rem; margin-bottom: 8px; }
+.profile-form-wrap { padding: 5px 0; }
+.form-header { text-align: center; margin-bottom: 20px; }
+.form-header h2 { font-size: 1.6rem; margin-bottom: 6px; }
 
 /* Form Grid */
 .form-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
 }
 .full-width { grid-column: 1 / -1; }
 
 /* Form Card */
-.form-card { padding: 24px; }
+.form-card { padding: 20px 24px; }
 .card-header {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px; padding-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px; padding-bottom: 12px;
   border-bottom: var(--border);
 }
 .card-header span:first-child { font-size: 1.35rem; }
@@ -295,11 +297,11 @@ function handleSubmit() {
 .ml-auto { margin-left: auto; }
 
 /* Form Groups */
-.form-group { margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
 .form-group:last-child { margin-bottom: 0; }
 .form-group label {
-  display: block; font-size: 0.92rem; font-weight: 700; color: var(--text-secondary);
-  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 11px;
+  display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
 }
 
 /* Range Row (Basic Info) */
@@ -313,8 +315,8 @@ function handleSubmit() {
 .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .vehicle-grid { grid-template-columns: repeat(4, 1fr); }
 .radio-card {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 16px 12px; border-radius: var(--r-lg);
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 10px; border-radius: var(--r-md);
   background: var(--bg-card); border: var(--border);
   cursor: pointer; transition: var(--transition); text-align: center;
 }
