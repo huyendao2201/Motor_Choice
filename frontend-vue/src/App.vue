@@ -1,27 +1,32 @@
 <template>
   <div class="app-root">
     <!-- Background animated blobs -->
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
-    <div class="bg-blob blob-3"></div>
+    <div class="bg-blob blob-1" :style="{ opacity: isDark ? 0.12 : 0.06 }"></div>
+    <div class="bg-blob blob-2" :style="{ opacity: isDark ? 0.12 : 0.06 }"></div>
+    <div class="bg-blob blob-3" :style="{ opacity: isDark ? 0.12 : 0.06 }"></div>
 
     <!-- Header / Nav -->
-    <TheHeader :active-tab="activeTab" @tab-change="activeTab = $event" />
+    <TheHeader 
+      :active-tab="activeTab" 
+      :is-dark="isDark"
+      @tab-change="handleTabChange" 
+      @theme-toggle="toggleTheme"
+    />
 
     <!-- Main Content -->
     <main class="app-main">
       <transition name="tab-fade" mode="out-in">
         <!-- TAB: TƯ VẤN XE -->
-        <RecommendTab v-if="activeTab === 'recommend'" key="recommend" />
+        <RecommendTab v-if="activeTab === 'recommend'" :key="'rec-' + recommendKey" />
 
         <!-- TAB: CƠ SỞ DỮ LIỆU -->
         <DatabaseTab v-else-if="activeTab === 'database'" key="database" />
 
-        <!-- TAB: AHP CALCULATOR -->
-        <AhpTab v-else-if="activeTab === 'ahp'" key="ahp" />
-
         <!-- TAB: VỀ HỆ THỐNG -->
         <AboutTab v-else-if="activeTab === 'about'" key="about" />
+
+        <!-- TAB: ADMIN -->
+        <AdminTab v-else-if="activeTab === 'admin'" key="admin" />
       </transition>
     </main>
 
@@ -31,15 +36,42 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import TheHeader from './components/TheHeader.vue'
 import TheFooter from './components/TheFooter.vue'
 import RecommendTab from './components/tabs/RecommendTab.vue'
 import DatabaseTab from './components/tabs/DatabaseTab.vue'
-import AhpTab from './components/tabs/AhpTab.vue'
 import AboutTab from './components/tabs/AboutTab.vue'
+import AdminTab from './components/tabs/AdminTab.vue'
 
 const activeTab = ref('recommend')
+const recommendKey = ref(0)
+const isDark = ref(localStorage.getItem('theme') === 'dark')
+
+const handleTabChange = (newTab) => {
+  if (newTab === 'recommend' && activeTab.value === 'recommend') {
+    recommendKey.value++ // Force reset RecommendTab
+  }
+  activeTab.value = newTab
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+}
+
+watch(isDark, (val) => {
+  if (val) {
+    document.documentElement.classList.add('dark-theme')
+  } else {
+    document.documentElement.classList.remove('dark-theme')
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  // Sync initial state if needed
+})
 </script>
 
 <style scoped>

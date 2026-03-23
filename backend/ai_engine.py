@@ -621,6 +621,9 @@ def initialize_system() -> Tuple[AHPWeightPredictor, DSSEngine]:
     # Load dataset
     logger.info(f"📊 Loading dataset from {DATA_PATH}...")
     df = pd.read_excel(DATA_PATH)
+    if 'image_url' in df.columns:
+        df['image_url'] = df['image_url'].fillna('')
+        
     _dss_engine = DSSEngine(df)
     logger.info(f"✅ Loaded {len(df)} motorcycles.")
 

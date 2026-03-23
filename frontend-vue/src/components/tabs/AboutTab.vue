@@ -5,6 +5,7 @@
       <p>Dự án môn Hệ Hỗ Trợ Ra Quyết Định – Phương án A: AI dự đoán trọng số AHP</p>
     </div>
 
+
     <!-- Architecture Flow -->
     <div class="arch-card glass-card">
       <h3>🏗️ Kiến Trúc Hệ Thống</h3>
@@ -20,17 +21,6 @@
       </div>
     </div>
 
-    <!-- About Cards -->
-    <div class="about-grid">
-      <div v-for="card in aboutCards" :key="card.title" class="about-card glass-card">
-        <div class="about-card-icon">{{ card.icon }}</div>
-        <h3>{{ card.title }}</h3>
-        <p>{{ card.desc }}</p>
-        <div class="about-tags">
-          <span v-for="tag in card.tags" :key="tag" class="badge badge-primary">{{ tag }}</span>
-        </div>
-      </div>
-    </div>
 
     <!-- DSS Algorithm -->
     <div class="algo-card glass-card">
@@ -95,6 +85,18 @@
       </div>
     </div>
 
+    <!-- Feature Highlights -->
+    <div class="about-grid">
+      <div v-for="card in aboutCards" :key="card.title" class="about-card glass-card">
+        <div class="about-card-icon">{{ card.icon }}</div>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.desc }}</p>
+        <div class="about-tags">
+          <span v-for="tag in card.tags" :key="tag" class="badge badge-primary">{{ tag }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Tech Stack -->
     <div class="stack-card glass-card">
       <h3>🛠️ Tech Stack</h3>
@@ -119,9 +121,59 @@ const health = ref(null)
 const metricsLoading = ref(true)
 
 onMounted(async () => {
-  try { health.value = await healthCheck() } catch {}
-  finally { metricsLoading.value = false }
+  try {
+    const data = await healthCheck()
+    health.value = data
+  } catch {}
+  finally {
+    metricsLoading.value = false
+  }
 })
+
+const importanceData = {
+  labels: ['Thu nhập & Ngân sách', 'Mục đích sử dụng', 'Tần suất đi lại', 'Độ tuổi', 'Giới tính', 'Khu vực sống'],
+  datasets: [{
+    label: 'Mức độ ảnh hưởng (%)',
+    data: [38, 25, 18, 12, 4, 3],
+    backgroundColor: [
+      'rgba(99, 102, 241, 0.8)',
+      'rgba(37, 99, 235, 0.7)',
+      'rgba(16, 185, 129, 0.6)',
+      'rgba(245, 158, 11, 0.5)',
+      'rgba(236, 72, 153, 0.4)',
+      'rgba(107, 114, 128, 0.3)'
+    ],
+    borderRadius: 8,
+    borderWidth: 0,
+    barThickness: 30
+  }]
+}
+
+const importanceOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+      titleFont: { size: 14, weight: 'bold' },
+      bodyFont: { size: 13 },
+      padding: 12,
+      displayColors: false
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: 'rgba(156, 163, 175, 0.8)', font: { weight: '600' } }
+    },
+    y: {
+      grid: { display: false },
+      ticks: { color: 'rgba(156, 163, 175, 1)', font: { weight: '700', size: 12 } }
+    }
+  }
+}
 
 const archSteps = [
   { icon: '👤', label: 'User Input', sub: 'Profile & Preferences', class: 'step-user' },
@@ -167,79 +219,91 @@ const techStack = [
 
 <style scoped>
 .about-tab {}
-.page-container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; display: flex; flex-direction: column; gap: 24px; }
+.page-container { max-width: 1400px; margin: 0 auto; padding: 30px 32px 60px; display: flex; flex-direction: column; gap: 32px; }
+
+.section-title h2 { font-size: 2.8rem; margin-bottom: 15px; }
+.section-title p { font-size: 1.3rem; }
 
 /* Architecture */
-.arch-card { padding: 28px; }
-.arch-card h3 { margin-bottom: 24px; font-size: 1rem; }
-.arch-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.arch-step-wrap { display: flex; align-items: center; gap: 8px; }
+.arch-card { padding: 36px; }
+.arch-card h3 { margin-bottom: 30px; font-size: 1.25rem; font-weight: 800; }
+.arch-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.arch-step-wrap { display: flex; align-items: center; gap: 12px; }
 .arch-step {
-  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
-  padding: 14px 16px; border-radius: var(--r-lg); border: 1px solid rgba(255,255,255,0.08);
-  min-width: 90px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  padding: 18px 20px; border-radius: var(--r-lg); 
+  background: var(--bg-item); border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm); transition: var(--transition);
+  min-width: 130px;
 }
-.step-ai { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.25); }
-.step-result { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); }
-.arch-icon { font-size: 1.4rem; }
-.arch-label { font-size: 0.72rem; font-weight: 800; color: var(--text); }
-.arch-sub { font-size: 0.62rem; color: var(--text-dim); }
-.arch-arrow { font-size: 1.2rem; color: var(--text-dim); }
+.arch-step:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+.step-ai { background: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.3) !important; }
+.step-filter { background: rgba(245, 158, 11, 0.05) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+.step-result { background: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+.arch-icon { font-size: 2.2rem; margin-bottom: 2px; }
+.arch-label { font-size: 0.95rem; font-weight: 850; color: var(--text-header); }
+.arch-sub { font-size: 0.75rem; color: var(--text-secondary); }
+.arch-arrow { font-size: 1.4rem; color: var(--primary); opacity: 0.5; font-weight: 900; }
 
 /* About Grid */
-.about-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.about-card { padding: 24px; display: flex; flex-direction: column; gap: 10px; }
-.about-card-icon { font-size: 2rem; }
-.about-card h3 { font-size: 0.95rem; }
-.about-card p { font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary); }
-.about-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.about-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.about-card { padding: 32px; display: flex; flex-direction: column; gap: 14px; }
+.about-card-icon { font-size: 2.6rem; }
+.about-card h3 { font-size: 1.35rem; font-weight: 800; }
+.about-card p { font-size: 1.05rem; line-height: 1.7; color: var(--text-secondary); }
+.about-tags .badge { font-size: 0.85rem; padding: 6px 14px; }
 
 /* Algorithm */
-.algo-card { padding: 28px; }
-.algo-card h3 { margin-bottom: 20px; font-size: 1rem; }
-.algo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.algo-card { padding: 36px; }
+.algo-card h3 { margin-bottom: 28px; font-size: 1.25rem; font-weight: 800; }
+.algo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .algo-section.full { grid-column: 1 / -1; }
 .algo-section {
-  background: rgba(255,255,255,0.03); border: var(--border); border-radius: var(--r-md); padding: 16px 20px;
+  background: var(--bg-2); border: var(--border); border-radius: var(--r-md); padding: 22px 28px;
 }
-.algo-title { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 10px; }
+.algo-title { font-size: 1rem; font-weight: 800; color: var(--text-header); margin-bottom: 12px; }
 .algo-formula {
-  font-size: 1rem; font-weight: 800; color: var(--primary-light);
+  font-size: 1.3rem; font-weight: 900; color: var(--primary);
   font-family: 'Courier New', monospace;
-  background: var(--primary-dim); border-radius: var(--r-sm); padding: 10px 14px; margin-bottom: 8px;
+  background: var(--primary-dim); border-radius: var(--r-sm); padding: 14px 20px; margin-bottom: 10px;
+  letter-spacing: 0.5px;
 }
-.algo-note { font-size: 0.75rem; color: var(--text-dim); }
+.algo-note { font-size: 0.95rem; color: var(--text-dim); }
 
 /* Metrics */
-.metrics-card { padding: 28px; }
-.metrics-card h3 { margin-bottom: 20px; font-size: 1rem; }
-.metrics-loading { display: flex; align-items: center; gap: 12px; padding: 20px; color: var(--text-dim); }
-.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.metrics-card { padding: 36px; }
+.metrics-card h3 { margin-bottom: 28px; font-size: 1.25rem; font-weight: 800; }
+.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .metric-item {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.03); border: var(--border); border-radius: var(--r-md);
-  padding: 16px 12px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: var(--bg-2); border: var(--border); border-radius: var(--r-md);
+  padding: 24px 16px; text-align: center;
 }
-.mi-icon { font-size: 1.2rem; }
-.mi-label { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-.mi-val { font-size: 0.95rem; font-weight: 800; color: var(--text); }
-.mi-val.success { color: var(--accent); }
+.mi-icon { font-size: 1.6rem; }
+.mi-label { font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; }
+.mi-val { font-size: 1.2rem; font-weight: 900; color: var(--text-header); }
 
 /* Tech Stack */
-.stack-card { padding: 28px; }
-.stack-card h3 { margin-bottom: 20px; font-size: 1rem; }
-.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stack-card { padding: 36px; }
+.stack-card h3 { margin-bottom: 28px; font-size: 1.25rem; font-weight: 800; }
+.stack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .stack-item {
-  display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,0.03); border: var(--border); border-radius: var(--r-md);
-  padding: 14px 16px;
+  display: flex; align-items: center; gap: 18px;
+  background: var(--bg-2); border: var(--border); border-radius: var(--r-md);
+  padding: 20px 24px;
 }
-.stack-icon { font-size: 1.5rem; flex-shrink: 0; }
-.stack-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+.stack-icon { font-size: 2.2rem; }
+.stack-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+.stack-desc { font-size: 0.85rem !important; }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .about-grid, .algo-grid, .metrics-grid, .stack-grid { grid-template-columns: 1fr; }
-  .arch-flow { flex-direction: column; }
-  .arch-arrow { transform: rotate(90deg); }
+  .arch-flow { justify-content: center; }
 }
+
+/* Feature Importance Chart Styles */
+.importance-card { padding: 36px; }
+.card-header-with-info { margin-bottom: 30px; }
+.card-header-with-info h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; }
+.chart-container { height: 400px; width: 100%; position: relative; }
 </style>

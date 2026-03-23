@@ -11,10 +11,18 @@
     <div class="compare-check" :class="{ visible: selected }">✓</div>
 
     <!-- Brand Tag -->
-    <span class="brand-tag">{{ bike.brand }}</span>
+    <div class="card-top">
+      <span class="brand-tag">{{ bike.brand }}</span>
+      <span v-if="bike.rank === 1" class="winner-badge">LỰA CHỌN TỐI ƯU</span>
+    </div>
+
+    <!-- Image Area -->
+    <div class="bike-image-container" v-if="bike.image_url">
+      <img :src="bike.image_url" :alt="bike.model" class="bike-image" loading="lazy" />
+    </div>
 
     <!-- Model Name -->
-    <div class="bike-model">{{ bike.model }}</div>
+    <div class="bike-model" :class="{ 'with-image': bike.image_url }">{{ bike.model }}</div>
 
     <!-- Type & CC -->
     <div class="bike-type">
@@ -162,15 +170,39 @@ const criteriaItems = [
 .badge-default { font-size: 0.75rem; font-weight: 800; color: var(--text-dim); }
 
 /* Brand */
+.card-top { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
 .brand-tag {
-  display: inline-block; margin-top: 16px; /* space for rank-badge */
   font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
   color: var(--primary-light);
   background: var(--primary-dim); border-radius: 4px; padding: 2px 8px;
 }
+.winner-badge {
+  font-size: 0.6rem; font-weight: 900; color: #fff;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  padding: 3px 10px; border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+  letter-spacing: 0.5px;
+}
 
 /* Model */
+.bike-image-container {
+  width: 100%;
+  height: 140px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 10px 0;
+  transition: transform 0.3s ease;
+}
+.bike-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+.bike-card:hover .bike-image-container {
+  transform: scale(1.06) translateY(-4px);
+}
 .bike-model { font-size: 1.05rem; font-weight: 800; color: var(--text); line-height: 1.3; }
+.bike-model.with-image { margin-top: 4px; }
 
 /* Type & CC */
 .bike-type { display: flex; align-items: center; gap: 8px; }
