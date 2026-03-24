@@ -73,13 +73,18 @@ const tabs = [
   { id: 'about', icon: '📊', label: 'Về hệ thống' },
 ]
 
-onMounted(async () => {
-  try {
-    const data = await healthCheck()
-    systemStatus.value = data.model_trained ? 'ok' : 'error'
-  } catch {
-    systemStatus.value = 'error'
+onMounted(() => {
+  const check = async () => {
+    try {
+      const data = await healthCheck()
+      systemStatus.value = data.model_trained ? 'ok' : 'error'
+    } catch {
+      systemStatus.value = 'error'
+    }
   }
+  
+  check() // Check immediately
+  setInterval(check, 30000) // Re-check every 30 seconds
 })
 </script>
 
